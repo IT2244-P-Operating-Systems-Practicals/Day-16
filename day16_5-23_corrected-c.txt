@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int a, b, c; // Global variables
+
+void find_prime(int limit) {
+    printf("Prime numbers up to %d: ", limit);
+    for (int num = 2; num <= limit; num++) {
+        int is_prime = 1;
+        for (int div = 2; div * div <= num; div++) {
+            if (num % div == 0) {
+                is_prime = 0;
+                break;
+            }
+        }
+        if (is_prime) {
+            printf("%d ", num);
+        }
+    }
+    printf("\n");
+}
+
+int main() {
+    pid_t f, f1, f2;
+
+    printf("Enter number 1 (Factorial): ");
+    scanf("%d", &a);
+    printf("Enter number 2 (Fibonacci): ");
+    scanf("%d", &b);
+    printf("Enter number 3 (Prime Limit): ");
+    scanf("%d", &c);
+
+    f = fork();
+    if (f == 0) { // First child - Factorial
+        sleep(2);
+        printf("\nFactorial\n");
+        printf("My parent ID %d\n", getppid());
+
+        int fact = 1;
+        for (int i = 1; i <= a; ++i) {
+            fact *= i;
+        }
+        printf("Factorial of %d is %d\n", a, fact);
+        exit(0);
+    } else {
+        f1 = fork();
+        if (f1 == 0) { // Second child - Fibonacci
+            sleep(2);
+            printf("\nFibonacci\n");
+            printf("My parent ID %d\n", getppid());
+
+            int n1 = 0, n2 = 1, fib;
+            for (int i = 0; i < b; i++) {
+                printf("%d\n", n1);
+                fib = n1 + n2;
+                n1 = n2;
+                n2 = fib;
+            }
+            exit(0);
+        } else {
+            f2 = fork();
+            if (f2 == 0) { // Third child - Prime numbers
+                sleep(2);
+                printf("\nPrime numbers\n");
+                printf("My parent ID %d\n", getppid());
+                find_prime(c);
+                exit(0);
+            } else {
+                printf("\nParent Process\n");
+                printf("My ID: %d\n", getpid());
+                printf("My parent ID: %d\n", getppid());
+
+                wait(NULL); // Wait for first child
+                wait(NULL); // Wait for second child
+                wait(NULL); // Wait for third child
+            }
+        }
+    }
+
+    return 0;
+}
